@@ -11,7 +11,6 @@ interface ApiService {
     @GET("get_memes")
     suspend fun getUsers(): Response<MemesRes>  // Example API call to get users
 
-    // Add other API endpoints and corresponding methods here
 }
 
 object RetrofitInstance {

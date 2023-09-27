@@ -1,25 +1,18 @@
 package com.example.vasupractice
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.view.View.*
-import android.view.ViewGroup
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.ImageView
-import android.widget.SeekBar
 import android.widget.Toast
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.gson.Gson
-import java.io.File
-import java.util.*
 import java.util.concurrent.Executors
 
 
@@ -45,27 +38,6 @@ fun View.invisible() {
 fun <T> T.tos(ctx: Context) = Toast.makeText(ctx, "$this", Toast.LENGTH_SHORT).show()
 fun <T> T.tosL(ctx: Context) = Toast.makeText(ctx, "$this", Toast.LENGTH_LONG).show()
 
-//fun getTransparentBmp(ctx: Context): BitmapDrawable {
-//    val bitmapDrawable = BitmapDrawable(ctx.resources, BaseAc.transBmp)
-//    bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
-//    return bitmapDrawable;
-//}
-
-fun SeekBar.customSbChangeListener(onChange: (Int) -> Unit, onStop: (Int) -> Unit) {
-    this.setOnSeekBarChangeListener(null)
-    this.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-        override fun onProgressChanged(sb: SeekBar, progress: Int, b: Boolean) {
-            onChange(progress)
-        }
-
-        override fun onStopTrackingTouch(sb: SeekBar) {
-            onStop(sb.progress)
-        }
-
-        override fun onStartTrackingTouch(sb: SeekBar) {}
-    })
-}
-
 fun String.toColor(): Int {
     return try {
         Color.parseColor(this)
@@ -89,100 +61,39 @@ fun ext(block: () -> Unit) {
 
 fun Exception.print() {
 //    if (BuildConfig.DEBUG) {
-        printStackTrace()
-        "$message | ${javaClass.name}".log()
+    printStackTrace()
+    "$message | ${javaClass.name}".log()
 //    }
 //    FirebaseCrashlytics.getInstance().recordException(this)
 }
 //------------------------------------- debug utils -----------------------------------------//
 
 
-//------------------------------------- bitmap utils -------------------------------------//
-fun Bitmap.copy(): Bitmap {
-    System.gc()
-    return copy(config, true)
-}
-
-
-//Glide treats LayoutParams.WRAP_CONTENT as a request for an image the size of this device's screen dimensions.
-// If you want to load the original image and are ok with the corresponding memory cost and OOMs (depending on the input size), use override(Target.SIZE_ORIGINAL).
-// Otherwise, use LayoutParams.MATCH_PARENT, set layout_width and layout_height to fixed dimension, or use .override() with fixed dimensions.
 fun ImageView.load(any: Any?, withCrossFade: Boolean = false) {
+//    val cpd = CircularProgressDrawable(this.context)
+//    cpd.strokeWidth = 7f
+//    cpd.centerRadius = 35f
+//    cpd.setColorSchemeColors(Color.GREEN, Color.CYAN, Color.MAGENTA)
+//    cpd.start()
+
     Glide.with(this).load(any)
-//        .placeholder(R.drawable.ic_img_loading)
-        .error(R.drawable.ic_launcher_background)
-            .override(250)
-        .apply {
-            if (withCrossFade)
-                transition(DrawableTransitionOptions.withCrossFade()).into(this@load)
-            else
-                into(this@load)
-        }
-}
-
-fun ImageView.loadOnly(any: Any?) =
-    Glide.with(this)
-        .load(any)
-//                .skipMemoryCache(true)
-//                .diskCacheStrategy(DiskCacheStrategy.NONE)
-        .into(this@loadOnly)
-
-
-fun String.capFirstLetter(): String {
-    if (isEmpty() || isBlank()) return this
-
-    val words = trim().split("\\s".toRegex()).toTypedArray()
-    var capitalizeStr = ""
-    for (word in words) {
-        if (word.isEmpty()) continue
-
-        val firstLetter = word.substring(0, 1)                       // Capitalize first letter
-        val remainingLetters = word.substring(1)            // Get remaining letter
-        capitalizeStr += firstLetter.uppercase(Locale.getDefault()) + remainingLetters.lowercase(
-            Locale.getDefault()
-        ) + " "
-    }
-    return capitalizeStr
-}
-
-
-fun isVPN(context: Context): Boolean {
-    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    /*for (n in cm.allNetworks) {
-        cm.getNetworkCapabilities(n)?.let {
-            if (it.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                return true
+//            .placeholder(cpd)
+            .error(R.drawable.ic_launcher_background)
+            .override(100)
+            .apply {
+                if (withCrossFade)
+                    transition(DrawableTransitionOptions.withCrossFade()).into(this@load)
+                else
+                    into(this@load)
             }
-        }
-    }*/
-
-    cm.getNetworkCapabilities(cm.activeNetwork)?.let {
-        if (it.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return true
-    }
-    return false
 }
 
-
-fun disableBtn(v: View) {
-    v.isEnabled = false
-    Handler(Looper.getMainLooper()).postDelayed({ v.isEnabled = true }, 1500)
-}
-
-fun View.removeFromParent() {
-    if (parent != null) (parent as ViewGroup).removeView(this)
-}
-
-
-fun File.toBmp(): Bitmap = BitmapFactory.decodeFile(absolutePath, BitmapFactory.Options())
-/*
-Execution Order java
- static{}
- {}
- onCreate()
- onStart()
-*/
-
-
+fun ImageView.loadWithoutCatch(any: Any?) =
+        Glide.with(this)
+                .load(any)
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .into(this@loadWithoutCatch)
 
 fun onBackground(block: () -> Unit) {
     Executors.newSingleThreadExecutor().execute {
